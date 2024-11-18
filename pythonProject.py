@@ -33,7 +33,6 @@ def parse(fmla):
     num_propositions = 0
     num_variables = 0
     stack = []
-    lhs, con, rhs = None, None, None  
     if isProp(fmla):
         return ('a proposition')
     
@@ -124,6 +123,8 @@ def isFo(fmla):
 def lhs_Con_Rhs(fmla):
     stack = []
     lhs, con, rhs = None, None, None  
+    if (isNeg(fmla)):
+        fmla = convertNegativeBinary(fmla)
     for i in range(len(fmla)): 
         if fmla[i] == '(':
             stack.append(i)
@@ -131,21 +132,20 @@ def lhs_Con_Rhs(fmla):
             if stack:
                 stack.pop()
             else:
+                print ("not a wiff 1")
                 return None, None, None  # NOT A WFF
         if len(stack) == 1: 
             if i < len(fmla) - 1 and (fmla[i] + fmla[i+1] == '/\\' or fmla[i] + fmla[i+1] == '\\/' or fmla[i] + fmla[i+1] == '=>'):
-                lhs, con, rhs = fmla[:i], fmla[i:i+2], fmla[i+2:]
-        else:
-            return None, None, None  # NOT A WFF
-          
+                lhs, con, rhs = fmla[1:i], fmla[i:i+2], fmla[i+2:(len(fmla)-1)]
+
     if len(stack) != 0: 
+        print ("not a wiff 3")
         return None, None, None  # NOT A WFF
 
     if lhs is not None and con is not None and rhs is not None:
         print(f'LHS : {lhs} Con : {con} Rhs : {rhs}')
         return lhs, con, rhs
-    else:
-        return None, None, None  #
+    else: print ("print nah")
     
 # Return the LHS of a binary connective formula
 def lhs(fmla):
@@ -162,6 +162,39 @@ def rhs(fmla):
     _, _, rhs = lhs_Con_Rhs(fmla)
     return rhs
 
+def convertNegativeBinary(formula):
+    """
+    Converts a negated binary connective formula into its equivalent by applying negation to each operand 
+    and flipping the connective according to De Morgan's Laws.
+    """
+    # Remove the outer negation and parentheses
+    inner_formula = formula[2:-1]
+
+    if "/\\" in inner_formula:  
+        connective = "/\\"
+        replacement = "\\/"  
+    elif "\\/" in inner_formula:  
+        connective = "\\/"
+        replacement = "/\\"  
+    elif "=>" in inner_formula:
+        connective = "=>"
+        replacement = "/\\"
+
+    # Split the formula into its operands based on the binary connective
+    operands = inner_formula.split(connective)
+    left_operand = operands[0].strip()
+    right_operand = operands[1].strip()
+
+    if connective != "=>": 
+        negated_left = f"~{left_operand}"
+        negated_right = f"~{right_operand}"
+    else: 
+        negated_left = left_operand
+        negated_right = f"~{right_operand}"   
+
+    return f"({negated_left} {replacement} {negated_right})"
+
+lhs_Con_Rhs(r"(~p => ~q)")
 
 # You may choose to represent a theory as a set or a list
 def theory(fmla):#initialise a theory with a single formula in it
