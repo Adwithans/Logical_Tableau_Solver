@@ -46,25 +46,3 @@ Ex~P(x,x) is satisfiable.
 (Ax(P(x,x)/\~P(x,x))/\ExQ(x,x)) is not satisfiable.
 ExEy(P(x,y)/\Ex~P(x,y)) is an existentially quantified formula.
 ExEy(P(x,y)/\Ex~P(x,y)) is satisfiable.
-Ax(Ey(P(x,y)/\ExQ(x,x))=>AzR(x,z)) is a universally quantified formula.
-Ax(Ey(P(x,y)/\ExQ(x,x))=>AzR(x,z)) is satisfiable.
-Ex(Ay(P(x,y)/\ExQ(x,x))=>AzR(x,z)) is an existentially quantified formula.
-Ex(Ay(P(x,y)/\ExQ(x,x))=>AzR(x,z)) is satisfiable.
-ExAyEzEw(P(x,y)=>~Q(w,z)) is an existentially quantified formula.
-ExAyEzEw(P(x,y)=>~Q(w,z)) may or may not be satisfiable.
-ExEzEwAy(P(x,y)=>~Q(w,z)) is an existentially quantified formula.
-ExEzEwAy(P(x,y)=>~Q(w,z)) is satisfiable.
-ExAy(P(x,y)/\~P(x,y)) is an existentially quantified formula.
-ExAy(P(x,y)/\~P(x,y)) is not satisfiable.
-ExAy(P(x,x)/\~P(y,y)) is an existentially quantified formula.
-ExAy(P(x,x)/\~P(y,y)) is not satisfiable.
-AyEx(P(x,x)/\~P(y,y)) is a universally quantified formula.
-AyEx(P(x,x)/\~P(y,y)) is not satisfiable.
-Ax(P(x,x)/\~P(x,x)) is a universally quantified formula.
-Ax(P(x,x)/\~P(x,x)) is not satisfiable.
-EzAxEw((P(x,z)/\~P(x,z))/\Q(z,w)) is an existentially quantified formula.
-EzAxEw((P(x,z)/\~P(x,z))/\Q(z,w)) is not satisfiable.
-~(EyEzAx((P(x,x)=>Q(y,y))/\(Q(z,z)=>P(x,x)))=>AxEy((P(x,x)=>Q(y,y))/\(Q(y,y)=>P(x,x)))) is a negation of a first order logic formula.
-~(EyEzAx((P(x,x)=>Q(y,y))/\(Q(z,z)=>P(x,x)))=>AxEy((P(x,x)=>Q(y,y))/\(Q(y,y)=>P(x,x)))) is satisfiable.
-Ey(P(y,y)/\Ax(P(x,x)/\AzEw(Q(w,z)/\~Q(w,z)))) is an existentially quantified formula.
-Ey(P(y,y)/\Ax(P(x,x)/\AzEw(Q(w,z)/\~Q(w,z)))) is satisfiable.
