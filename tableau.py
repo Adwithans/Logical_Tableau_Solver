@@ -224,31 +224,66 @@ def convertNegativeBinary(formula):
     # formula = formula.replace('~~', '')
     return formula
 
-def CovertNegationFirstOrder(formula):
+# def CovertNegationFirstOrder(formula):
+#     formula = formula[1:]
+#     result = ''
+#     i = 0
+#     while i < len(formula):
+#         if formula[i] in universals: 
+#             result += 'E'  
+#         elif formula[i] in existentials: 
+#             result += 'A' 
+#         elif formula[i] in predicates: 
+#             result += '~' + formula[i]  
+#         elif i + 1 < len(formula): 
+#             if formula[i:i+2] == '/\\': 
+#                 result += '\\/'  # Replace AND with OR
+#                 i += 1  # Skip the next character as it's part of the operator
+#             elif formula[i:i+2] == '\\/': 
+#                 result += '/\\'  # Replace OR with AND
+#                 i += 1  # Skip the next character as it's part of the operator                
+#             else:
+#                 result += formula[i]  # Keep character as is
+#         else:
+#             result += formula[i]  # Keep character as is
+#         i += 1  # Move to the next character    
+#     return result
+
+#['not a formula', 0
+#                 'an atom', 1
+#                 'a negation of a first order logic formula',  2
+#                 'a universally quantified formula',  3
+#                 'an existentially quantified formula',  4
+#                 'a binary connective first order formula',   5
+#                 'a proposition',  6
+#                 'a negation of a propositional formula',  7
+#                 'a binary connective propositional formula']  8
+
+def RecursiveNegation(formula): 
+    if formula[0] != '~':
+        return formula
     formula = formula[1:]
-    result = ''
-    i = 0
-    while i < len(formula):
-        if formula[i] in universals: 
-            result += 'E'  
-        elif formula[i] in existentials: 
-            result += 'A' 
-        elif formula[i] in predicates: 
-            result += '~' + formula[i]  
-        elif i + 1 < len(formula): 
-            if formula[i:i+2] == '/\\': 
-                result += '\\/'  # Replace AND with OR
-                i += 1  # Skip the next character as it's part of the operator
-            elif formula[i:i+2] == '\\/': 
-                result += '/\\'  # Replace OR with AND
-                i += 1  # Skip the next character as it's part of the operator
-            else:
-                result += formula[i]  # Keep character as is
-        else:
-            result += formula[i]  # Keep character as is
-        i += 1  # Move to the next character
-        
-    return result
+    parsedResult = parse(formula)
+
+    if parsedResult in [7, 2]: 
+        return RecursiveNegation(formula[1:])
+    
+    if parsedResult in [5, 8]:
+        left, opp, right = lhs(formula), con(formula), rhs(formula)
+        if opp == '=>':
+            returner = f'({RecursiveNegation(left)}{'/\\'}{RecursiveNegation('~'+right)})'
+        if opp== '/\\':
+            returner = f'({RecursiveNegation('~'+left)}{'\\/'}{RecursiveNegation('~'+right)})'
+        if opp == '\\/':   
+            returner = f'({RecursiveNegation('~'+left)}{'/\\'}{RecursiveNegation('~'+right)})'
+        return returner.replace('~~','')
+    if parsedResult in [1, 6]:
+        return '~'+formula
+    if parsedResult in [3]:
+        return 'E' + formula[1] + RecursiveNegation('~'+formula[2:])
+    if parsedResult in [4]:
+        return 'A' + formula[1] + RecursiveNegation('~'+formula[2:])
+
 
 def theory(fmla):#initialise a theory with a single formula in it
     return fmla
@@ -256,7 +291,7 @@ def theory(fmla):#initialise a theory with a single formula in it
 def sat(tableau):
     tableauBranches = []
     tableauBranches.append(tableau)
-    GammaFormulasSeen = []
+    AllGammaFormulasAcrossBranches =[]
     constants_new = []
     current_constant= 0
     while len(tableauBranches)!=0:
@@ -273,7 +308,7 @@ def sat(tableau):
                             return 1
                         continue
                     if isNeg(branch[i]):
-                        branch[i] = convertNegativeBinary(branch[i]).replace('~~','')
+                        branch[i] = RecursiveNegation(branch[i]).replace('~~','')
                     if isalpha(branch[i]):
                         original = branch[i]
                         branch[i] = lhs(original).replace('~~','')
@@ -281,7 +316,7 @@ def sat(tableau):
                         tableauBranches.append(branch)
                         break
                     if isBeta(branch[i]):
-                        # print("reached beta")
+                        # ##print("reached beta")
                         if(con(branch[i]) == '=>'):
                             branch[i] = conConverter(branch[i])
                         original = branch[i]
@@ -295,18 +330,27 @@ def sat(tableau):
                     if isAtom(branch[i]) or isNegAtom(branch[i]) or isAtom1(branch[i]) or isNegAtom1(branch[i]):
                         continue
                     if isNeg(branch[i]):
-                        branch[i] = CovertNegationFirstOrder(branch[i])
+                        branch[i] = RecursiveNegation(branch[i])
+
                     if isDelta(branch[i]):
+                        #print('Delta')
                         if current_constant+1 > MAX_CONSTANTS:
                             return 2
                         newfmla = DeltaExpansion(branch[i], current_constant)
                         constants_new.append(constants[current_constant])
                         current_constant+=1
                         branch[i] = newfmla
-                        tableauBranches.append(branch) 
+                        tableauBranches.append(branch)
+                        #print(tableauBranches)
                         break
+
                     if isGamma(branch[i]):
+                        if AllGammaFormulasAcrossBranches !=[]: 
+                            GammaFormulasSeen = AllGammaFormulasAcrossBranches.pop()
+                        else: 
+                            GammaFormulasSeen = []
                         copyCheck = []
+                        #print("Gamma")
                         for fmla_1 in branch:
                             if not isGamma(fmla_1): 
                                 copyCheck.append(fmla_1)
@@ -320,21 +364,42 @@ def sat(tableau):
                             current_constant+=1
                             constants_new = []
                         else: #start Gamma Expansion
-                                if  branch[i] in GammaFormulasSeen and constants_new == [] and (ExpFirstOrder(copyCheck) and not is_closedFirstOrder(copyCheck)):
+                                if  branch[i] in GammaFormulasSeen and constants_new == [] and (ExpFirstOrder(copyCheck) and not is_closedFirstOrder(copyCheck)) and (len(copyCheck)+len(GammaFormulasSeen) == len(branch)):
+                                    ##print("here")
                                     return 1
                                 else: 
+                                    if(len(copyCheck)+len(GammaFormulasSeen) != len(branch)) and constants_new == [] and branch[i] not in GammaFormulasSeen: # there is another Gamma Formula in the branch that we need to expand
+                                        for i in range (current_constant): 
+                                            constants_new.append(constants[i])
+                                    elif((len(copyCheck)+len(GammaFormulasSeen) != len(branch)) and branch[i] in GammaFormulasSeen): 
+                                         branch = [x for x in branch if x != branch[i]]+[branch[i]] 
+                                         continue
+        
                                     branch = GammaExpansion(branch, branch[i], constants_new)
                                     constants_new = []
-                                    if branch[i] not in GammaFormulasSeen: GammaFormulasSeen.append(branch[i])                                
+                                    if branch[i] not in GammaFormulasSeen: GammaFormulasSeen.append(branch[i]) 
+                                    
+                        AllGammaFormulasAcrossBranches.append(GammaFormulasSeen)
                         tableauBranches.append(branch)
+                        #print(tableauBranches)
+                        #print("GammaFormulasSeen", AllGammaFormulasAcrossBranches)
                         break
+
                     if isalpha(branch[i]):
+                        ##print("Reached Alpha")
                         original = branch[i]
                         branch[i] = lhs(original).replace('~~','')
                         branch.append(rhs(original).replace('~~',''))
                         tableauBranches.append(branch)
+                        #print("tab", tableauBranches)
                         break
+
                     if isBeta(branch[i]):
+                        if AllGammaFormulasAcrossBranches !=[]: 
+                            GammaFormulasSeen = AllGammaFormulasAcrossBranches.pop()
+                        else: 
+                            GammaFormulasSeen = []
+                        #print("Reached Beta")
                         original = branch[i]
                         newBranch = branch.copy()
                         if(con(branch[i]) == '=>'):
@@ -343,6 +408,10 @@ def sat(tableau):
                         newBranch[i] = rhs(original).replace('~~','')
                         tableauBranches.append(branch)
                         tableauBranches.append(newBranch)
+                        #print("tab", tableauBranches)
+                        AllGammaFormulasAcrossBranches.append(GammaFormulasSeen)
+                        AllGammaFormulasAcrossBranches.append(GammaFormulasSeen)
+                        #print("GammaFormulasSee Here", AllGammaFormulasAcrossBranches)
                         break                        
     return 0
                         
@@ -424,7 +493,9 @@ def isDelta(fmla):
 def isGamma(fmla): 
     if fmla[0] == 'A':
         return True 
-    
+
+#print(sat([r'~((Ax(P(x,x)=>Q(x,x))/\Ax(R(x,x)=>P(x,x)))=>Ax(R(x,x)=>Q(x,x)))']))
+# ##print(con(r'~((Ax(P(x,x)=>Q(x,x))/\Ax(R(x,x)=>P(x,x)))=>Ax(R(x,x)=>Q(x,x)))'))
 #------------------------------------------------------------------------------------------------------------------------------:
 #                   DO NOT MODIFY THE CODE BELOW. MODIFICATION OF THE CODE BELOW WILL RESULT IN A MARK OF 0!                   :
 #------------------------------------------------------------------------------------------------------------------------------:
