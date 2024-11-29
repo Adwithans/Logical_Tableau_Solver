@@ -196,69 +196,6 @@ def conConverter(fmla):
     formula = formula.replace('~~','')
     return formula
 
-def convertNegativeBinary(formula):
-    inner_formula = formula[2:-1]
-
-    if "/\\" in inner_formula:  
-        connective = "/\\"
-        replacement = "\\/"  
-    elif "\\/" in inner_formula:  
-        connective = "\\/"
-        replacement = "/\\"  
-    elif "=>" in inner_formula:
-        connective = "=>"
-        replacement = "/\\"
-
-    operands = inner_formula.split(connective, 1)  # Only split once
-    left_operand = operands[0].strip()
-    right_operand = operands[1].strip()
-
-    if connective != "=>": 
-        negated_left = f"~{left_operand}"
-        negated_right = f"~{right_operand}"
-    else: 
-        negated_left = left_operand
-        negated_right = f"~{right_operand}"   
-
-    formula = f"({negated_left} {replacement} {negated_right})"
-    # formula = formula.replace('~~', '')
-    return formula
-
-# def CovertNegationFirstOrder(formula):
-#     formula = formula[1:]
-#     result = ''
-#     i = 0
-#     while i < len(formula):
-#         if formula[i] in universals: 
-#             result += 'E'  
-#         elif formula[i] in existentials: 
-#             result += 'A' 
-#         elif formula[i] in predicates: 
-#             result += '~' + formula[i]  
-#         elif i + 1 < len(formula): 
-#             if formula[i:i+2] == '/\\': 
-#                 result += '\\/'  # Replace AND with OR
-#                 i += 1  # Skip the next character as it's part of the operator
-#             elif formula[i:i+2] == '\\/': 
-#                 result += '/\\'  # Replace OR with AND
-#                 i += 1  # Skip the next character as it's part of the operator                
-#             else:
-#                 result += formula[i]  # Keep character as is
-#         else:
-#             result += formula[i]  # Keep character as is
-#         i += 1  # Move to the next character    
-#     return result
-
-#['not a formula', 0
-#                 'an atom', 1
-#                 'a negation of a first order logic formula',  2
-#                 'a universally quantified formula',  3
-#                 'an existentially quantified formula',  4
-#                 'a binary connective first order formula',   5
-#                 'a proposition',  6
-#                 'a negation of a propositional formula',  7
-#                 'a binary connective propositional formula']  8
-
 def RecursiveNegation(formula): 
     if formula[0] != '~':
         return formula
@@ -493,9 +430,6 @@ def isDelta(fmla):
 def isGamma(fmla): 
     if fmla[0] == 'A':
         return True 
-
-#print(sat([r'~((Ax(P(x,x)=>Q(x,x))/\Ax(R(x,x)=>P(x,x)))=>Ax(R(x,x)=>Q(x,x)))']))
-# ##print(con(r'~((Ax(P(x,x)=>Q(x,x))/\Ax(R(x,x)=>P(x,x)))=>Ax(R(x,x)=>Q(x,x)))'))
 #------------------------------------------------------------------------------------------------------------------------------:
 #                   DO NOT MODIFY THE CODE BELOW. MODIFICATION OF THE CODE BELOW WILL RESULT IN A MARK OF 0!                   :
 #------------------------------------------------------------------------------------------------------------------------------:
